@@ -33,7 +33,7 @@ the bookmarks are saved in DDS's state file (`~/.local/state/yazi/.dds` on Linux
 Add this to your `keymap.toml`:
 
 ```toml
-# If your yazi version is lower than v25.5.28, repleace "mgr" by "manager".
+# If your yazi version is lower than v25.5.28, replace "mgr" by "manager".
 [[mgr.prepend_keymap]]
 on = [ "m" ]
 run = "plugin bookmarks save"

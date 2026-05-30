@@ -100,7 +100,7 @@ local _load_last = ya.sync(function(state)
 	end)
 end)
 
-local _save_last = ya.sync(function(state, persist, imediate)
+local _save_last = ya.sync(function(state, persist, immediate)
 	local file = _get_bookmark_file()
 
 	local curr = {
@@ -110,7 +110,7 @@ local _save_last = ya.sync(function(state, persist, imediate)
 		is_parent = file.is_parent,
 	}
 
-	if imediate then
+	if immediate then
 		state.curr_dir = nil
 		state.last_dir = curr
 	else
@@ -129,6 +129,9 @@ local save_last_dir = ya.sync(function(state)
 	ps.sub("cd", function() _save_last(state.last_persist, false) end)
 
 	ps.sub("hover", function()
+		if not state.curr_dir then
+			return
+		end
 		local file = _get_bookmark_file()
 		state.curr_dir.desc = _generate_description(file)
 		state.curr_dir.path = tostring(file.url)
@@ -175,12 +178,13 @@ local save_bookmark = ya.sync(function(state, idx, custom_desc)
 		bookmark_desc = tostring(custom_desc)
 	end
 
-	state.bookmarks[_idx] = {
+	local new_bookmark = {
 		on = SUPPORTED_KEYS[idx].on,
 		desc = bookmark_desc,
 		path = tostring(file.url),
 		is_parent = file.is_parent,
 	}
+	state.bookmarks[_idx] = new_bookmark
 
 	-- Custom sorting function
 	table.sort(state.bookmarks, function(a, b)
@@ -210,8 +214,8 @@ local save_bookmark = ya.sync(function(state, idx, custom_desc)
 
 	if state.notify and state.notify.enable then
 		local message = state.notify.message.new
-		message, _ = message:gsub("<key>", state.bookmarks[_idx].on)
-		message, _ = message:gsub("<folder>", state.bookmarks[_idx].desc)
+		message, _ = message:gsub("<key>", new_bookmark.on)
+		message, _ = message:gsub("<folder>", new_bookmark.desc)
 		_send_notification(message)
 	end
 
@@ -279,7 +283,7 @@ return {
 				if _is_custom_desc_input_enabled() then
 					local value, event = ya.input {
 						title = "Save with custom description:",
-						position = { "top-center", y = 3, w = 60 },
+						pos = { "top-center", y = 3, w = 60 },
 						value = tostring(_get_bookmark_file().url),
 					}
 					if event ~= 1 then
@@ -310,9 +314,9 @@ return {
 			end
 
 			if bookmarks[selected].is_parent then
-				ya.mgr_emit("cd", { bookmarks[selected].path })
+				ya.emit("cd", { bookmarks[selected].path })
 			else
-				ya.mgr_emit("reveal", { bookmarks[selected].path })
+				ya.emit("reveal", { bookmarks[selected].path })
 			end
 		elseif action == "delete" then
 			delete_bookmark(selected)
