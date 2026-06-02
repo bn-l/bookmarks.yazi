@@ -1,19 +1,14 @@
 --- @since 25.4.8
 -- stylua: ignore
 local SUPPORTED_KEYS = {
-	{ on = "0", desc = "Free" }, { on = "1", desc = "Free" }, { on = "2", desc = "Free" }, { on = "3", desc = "Free" }, { on = "4", desc = "Free"},
-	{ on = "5", desc = "Free" }, { on = "6", desc = "Free" }, { on = "7", desc = "Free" }, { on = "8", desc = "Free" }, { on = "9", desc = "Free"},
-	{ on = "A", desc = "Free" }, { on = "B", desc = "Free" }, { on = "C", desc = "Free" }, { on = "D", desc = "Free" }, { on = "E", desc = "Free"},
-	{ on = "F", desc = "Free" }, { on = "G", desc = "Free" }, { on = "H", desc = "Free" }, { on = "I", desc = "Free" }, { on = "J", desc = "Free"},
-	{ on = "K", desc = "Free" }, { on = "L", desc = "Free" }, { on = "M", desc = "Free" }, { on = "N", desc = "Free" }, { on = "O", desc = "Free"},
-	{ on = "P", desc = "Free" }, { on = "Q", desc = "Free" }, { on = "R", desc = "Free" }, { on = "S", desc = "Free" }, { on = "T", desc = "Free"},
-	{ on = "U", desc = "Free" }, { on = "V", desc = "Free" }, { on = "W", desc = "Free" }, { on = "X", desc = "Free" }, { on = "Y", desc = "Free"}, { on = "Z", desc = "Free" },
-	{ on = "a", desc = "Free" }, { on = "b", desc = "Free" }, { on = "c", desc = "Free" }, { on = "d", desc = "Free" }, { on = "e", desc = "Free"},
-	{ on = "f", desc = "Free" }, { on = "g", desc = "Free" }, { on = "h", desc = "Free" }, { on = "i", desc = "Free" }, { on = "j", desc = "Free"},
-	{ on = "k", desc = "Free" }, { on = "l", desc = "Free" }, { on = "m", desc = "Free" }, { on = "n", desc = "Free" }, { on = "o", desc = "Free"},
-	{ on = "p", desc = "Free" }, { on = "q", desc = "Free" }, { on = "r", desc = "Free" }, { on = "s", desc = "Free" }, { on = "t", desc = "Free"},
-	{ on = "u", desc = "Free" }, { on = "v", desc = "Free" }, { on = "w", desc = "Free" }, { on = "x", desc = "Free" }, { on = "y", desc = "Free"}, { on = "z", desc = "Free" },
+	{ on = "h", desc = "Free" }, { on = "j", desc = "Free" }, { on = "k", desc = "Free" }, { on = "l", desc = "Free" },
+	{ on = ";", desc = "Free" }, { on = "n", desc = "Free" }, { on = "m", desc = "Free" }, { on = ",", desc = "Free" }, { on = ".", desc = "Free" },
+	{ on = "1", desc = "Free" }, { on = "2", desc = "Free" }, { on = "3", desc = "Free" }, { on = "4", desc = "Free" }, { on = "5", desc = "Free" },
+	{ on = "6", desc = "Free" }, { on = "7", desc = "Free" }, { on = "8", desc = "Free" }, { on = "9", desc = "Free" }, { on = "0", desc = "Free" },
 }
+
+local KEY_ORDER = {}
+for i, k in ipairs(SUPPORTED_KEYS) do KEY_ORDER[k.on] = i end
 
 local _send_notification = ya.sync(
 	function(state, message)
@@ -186,26 +181,8 @@ local save_bookmark = ya.sync(function(state, idx, custom_desc)
 	}
 	state.bookmarks[_idx] = new_bookmark
 
-	-- Custom sorting function
 	table.sort(state.bookmarks, function(a, b)
-		local key_a, key_b = a.on, b.on
-
-		-- Numbers first
-		if key_a:match("%d") and not key_b:match("%d") then
-			return true
-		elseif key_b:match("%d") and not key_a:match("%d") then
-			return false
-		end
-
-		-- Uppercase before lowercase
-		if key_a:match("%u") and key_b:match("%l") then
-			return true
-		elseif key_b:match("%u") and key_a:match("%l") then
-			return false
-		end
-
-		-- Regular alphabetical sorting
-		return key_a < key_b
+		return (KEY_ORDER[a.on] or 999) < (KEY_ORDER[b.on] or 999)
 	end)
 
 	if state.persist then
