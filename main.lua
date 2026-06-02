@@ -10,23 +10,12 @@ local SUPPORTED_KEYS = {
 local KEY_ORDER = {}
 for i, k in ipairs(SUPPORTED_KEYS) do KEY_ORDER[k.on] = i end
 
-local NOTIFY_DEFAULTS = {
-	enable = true,
-	timeout = 1,
-	message = {
-		new = "Bookmark '<key>' -> '<folder>'",
-		delete = "Deleted bookmark in '<key>'",
-		delete_all = "Deleted all bookmarks",
-	},
-}
-
 local _send_notification = ya.sync(
 	function(state, message)
-		local notify = state.notify or NOTIFY_DEFAULTS
 		ya.notify {
 			title = "Bookmarks",
 			content = message,
-			timeout = notify.timeout,
+			timeout = state.notify.timeout,
 		}
 	end
 )
@@ -200,9 +189,8 @@ local save_bookmark = ya.sync(function(state, idx, custom_desc)
 		_save_state(state.bookmarks)
 	end
 
-	local notify = state.notify or NOTIFY_DEFAULTS
-	if notify.enable then
-		local message = notify.message.new
+	if state.notify and state.notify.enable then
+		local message = state.notify.message.new
 		message, _ = message:gsub("<key>", new_bookmark.on)
 		message, _ = message:gsub("<folder>", new_bookmark.desc)
 		_send_notification(message)
@@ -230,9 +218,8 @@ local all_bookmarks = ya.sync(function(state, append_last_dir)
 end)
 
 local delete_bookmark = ya.sync(function(state, idx)
-	local notify = state.notify or NOTIFY_DEFAULTS
-	if notify.enable then
-		local message = notify.message.delete
+	if state.notify and state.notify.enable then
+		local message = state.notify.message.delete
 		message, _ = message:gsub("<key>", state.bookmarks[idx].on)
 		message, _ = message:gsub("<folder>", state.bookmarks[idx].desc)
 		_send_notification(message)
@@ -252,9 +239,8 @@ local delete_all_bookmarks = ya.sync(function(state)
 		_save_state(nil)
 	end
 
-	local notify = state.notify or NOTIFY_DEFAULTS
-	if notify.enable then
-		_send_notification(notify.message.delete_all)
+	if state.notify and state.notify.enable then
+		_send_notification(state.notify.message.delete_all)
 	end
 end)
 
@@ -369,12 +355,12 @@ return {
 		end
 
 		state.notify = {
-			enable = true,
-			timeout = NOTIFY_DEFAULTS.timeout,
+			enable = false,
+			timeout = 1,
 			message = {
-				new = NOTIFY_DEFAULTS.message.new,
-				delete = NOTIFY_DEFAULTS.message.delete,
-				delete_all = NOTIFY_DEFAULTS.message.delete_all,
+				new = "New bookmark '<key>' -> '<folder>'",
+				delete = "Deleted bookmark in '<key>'",
+				delete_all = "Deleted all bookmarks",
 			},
 		}
 		if type(args.notify) == "table" then
