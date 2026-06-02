@@ -137,7 +137,12 @@ local save_last_jump = ya.sync(function(state) _save_last(state.last_persist, tr
 
 local save_last_mark = ya.sync(function(state) _save_last(state.last_persist, true) end)
 
-local _is_show_keys_enabled = ya.sync(function(state) return state.show_keys end)
+local _is_show_keys_enabled = ya.sync(function(state)
+	if state.show_keys == nil then
+		return true
+	end
+	return state.show_keys
+end)
 
 local _is_custom_desc_input_enabled = ya.sync(function(state) return state.custom_desc_input end)
 
